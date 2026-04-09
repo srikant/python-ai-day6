@@ -41,3 +41,17 @@ def test_analyze_saves_to_database(scan_service, mock_db_connection):
         "status": "processed"
     }
     mock_db_connection.insert_one.assert_called_with(expected_document)
+
+# Test 4: Error Handling Test
+def test_analyze_handles_database_insert_error(scan_service, mock_db_connection):
+    mock_db_connection.insert_one.side_effect = Exception("MongoDB Connection Timeout")
+       
+    with pytest.raises(Exception, match="Connection Timeout"):
+        scan_service.analyze_and_save("scan_456", b"data")
+        
+    mock_db_connection.insert_one.assert_called_once()
+
+# Test 5: Input Validation Test
+def test_analyze_raises_error_on_empty_data(scan_service):
+    with pytest.raises(ValueError, match="Image data cannot be empty"):
+        scan_service.analyze_and_save("scan_789", b"")    
